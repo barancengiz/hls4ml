@@ -1,10 +1,12 @@
 from qkeras.quantizers import get_quantizer
 
 from hls4ml.converters.keras.convolution import parse_conv1d_layer, parse_conv2d_layer
+from hls4ml.converters.keras.recurrent import parse_rnn_layer
 from hls4ml.converters.keras.core import parse_batchnorm_layer, parse_dense_layer
 from hls4ml.converters.keras_to_hls import keras_handler, parse_default_keras_layer
 from hls4ml.model.types import FixedPrecisionType, QKerasBinaryQuantizer, QKerasPO2Quantizer, QKerasQuantizer
 
+qrnn_layers = ['QSimpleRNN', 'QLSTM', 'QGRU']
 
 def get_quantizer_from_config(keras_layer, quantizer_var):
     quantizer_config = keras_layer['config'][f'{quantizer_var}_quantizer']
@@ -141,3 +143,17 @@ def parse_qconv2dbatchnorm_layer(keras_layer, input_names, input_shapes, data_re
     temp_shape = intermediate_shape
     batch_layer, out_shape = parse_batchnorm_layer(keras_layer, input_names, temp_shape, data_reader)
     return {**conv_layer, **batch_layer}, out_shape
+
+
+@keras_handler(*qrnn_layers)
+def parse_qrnn_layer(keras_layer, input_names, input_shapes, data_reader):
+    assert keras_layer['class_name'] in qrnn_layers
+
+    layer, output_shape = parse_rnn_layer(
+        keras_layer, input_names, input_shapes, data_reader)
+
+    layer['weight_quantizer'] = get_quantizer_from_config(
+        keras_layer, 'kernel')
+    layer['bias_quantizer'] = get_quantizer_from_config(keras_layer, 'bias')
+
+    return layer, output_shape
