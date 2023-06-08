@@ -1318,8 +1318,11 @@ layer_map = {
     'Transpose': Transpose,
     'Embedding': Embedding,
     'SimpleRNN': SimpleRNN,
+    'QSimpleRNN': SimpleRNN,
     'LSTM': LSTM,
+    'QLSTM': LSTM,
     'GRU': GRU,
+    'QGRU': GRU,
     'GarNet': GarNet,
     'GarNetStack': GarNetStack,
     # TensorFlow-specific layers:
